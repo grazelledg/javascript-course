@@ -23,7 +23,7 @@ guessEl.value = 20;
 let secretNumber = Math.trunc(Math.random() * 20) + 1;
 console.log(secretNumber);
 
-let score = 40; 
+let score = 20; 
 let highscore = 0;
 
 document.querySelector('.score').textContent = score;
@@ -38,17 +38,39 @@ document.querySelector('.check').addEventListener('click', function() {
 const guess = Number(document.querySelector('.guess').value);
 console.log('Players guessed:', guess);
 
-if (guess == secretNumber) {
+if (guess === secretNumber ) {
     console.log ('Youre guess is correct!');
     document.querySelector('.message').textContent = 'Correct Number!';
+    document.querySelector('.guess').disabled = true;
+    document.querySelector('.check').disabled = true;
     document.querySelector('.number').textContent = secretNumber;
+    if (score > highscore) {
+        highscore = score;
+        document.querySelector('.highscore').textContent = highscore;
+    }
 
     } else if (guess > secretNumber) {
     console.log ('Youre guess is too high!');
     document.querySelector('.message').textContent = 'Too High!';
-} else {
+    score--;
+    document.querySelector('.score').textContent = score;
+    if (score < 1){
+        document.querySelector('.message').textContent = 'You kkost!';
+        document.querySelector('.number').textContent = secretNumber;
+        document.querySelector('.guess').disabled = true;
+        document.querySelector('.check').disabled = true;
+    }
+} else if (guess < secretNumber) {
     console.log ('Youre guess is too low!');
     document.querySelector('.message').textContent = 'Too Low!';
+    score--;
+    document.querySelector('.score').textContent = score;
+    if (score < 1){
+        document.querySelector('.message').textContent = 'You kkost!';
+        document.querySelector('.number').textContent = secretNumber;
+        document.querySelector('.guess').disabled = true;
+        document.querySelector('.check').disabled = true;
+    }
 }
 });
 
