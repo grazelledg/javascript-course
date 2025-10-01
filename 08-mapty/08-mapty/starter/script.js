@@ -86,3 +86,177 @@ run1.click();
 cycling1.click();
 console.log('Run clicks:', run1.clicks);
 console.log('Cycling clicks:', cycling1.clicks);
+
+
+'use strict';
+
+// ==============================
+// Section 1: Geolocation API Test
+// ==============================
+console.log('=== TESTING GEOLOCATION API ===');
+
+function getPosition() {
+  if (navigator.geolocation) {
+    console.log('🔍 Requesting user location...');
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        const { latitude } = position.coords;
+        const { longitude } = position.coords;
+        console.log(`Your current location: ${latitude}, ${longitude}`);
+
+        // Google Maps link for verification
+        const googleMapsUrl = `https://www.google.pt/maps/@${latitude},${longitude}`;
+        console.log(`View on Google Maps: ${googleMapsUrl}`);
+      },
+      function (error) {
+        console.error('Geolocation error:', error);
+
+        let message = 'Could not get your position. ';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            message +=
+              'Location access was denied. Please enable location services and refresh the page.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            message += 'Location information is unavailable.';
+            break;
+          case error.TIMEOUT:
+            message += 'Location request timed out.';
+            break;
+          default:
+            message += 'An unknown error occurred.';
+            break;
+        }
+        alert(`📍 ${message}`);
+      },
+      {
+        timeout: 10000,
+        enableHighAccuracy: true,
+        maximumAge: 600000,
+      }
+    );
+  } else {
+    alert('❌ Geolocation is not supported by this browser');
+  }
+}
+
+// Test the geolocation
+getPosition();
+
+// ==============================
+// Section 2: Leaflet.js Integration
+// ==============================
+console.log('=== TESTING LEAFLET MAPS ===');
+
+function createTestMap() {
+  // Default coords (Denver, Colorado)
+  const coords = [39.7392, -104.9903];
+  const zoomLevel = 13;
+
+  // Create the map
+  const map = L.map('map').setView(coords, zoomLevel);
+
+  // Add tile layer
+  L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  // Add a marker
+  L.marker(coords).addTo(map).bindPopup('Test location!').openPopup();
+
+  console.log('Map created successfully!');
+}
+
+// Test static map
+createTestMap();
+
+function createMapAtUserLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        const { latitude } = position.coords;
+        const { longitude } = position.coords;
+        const coords = [latitude, longitude];
+
+        console.log(`Creating map at user location: ${coords}`);
+
+        // Create map centered on user
+        const map = L.map('map').setView(coords, 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
+
+        // Marker at user location
+        L.marker(coords).addTo(map).bindPopup('You are here!').openPopup();
+      },
+      function () {
+        alert('Could not get your position');
+      }
+    );
+  }
+}
+
+// Test user-centered map
+createMapAtUserLocation();
+
+// ==============================
+// Section 3: App Class Controller
+// ==============================
+class App {
+  #map;
+  #mapZoomLevel = 13;
+  #mapEvent;
+  #workouts = [];
+
+  constructor() {
+    // Get user position on app start
+    this._getPosition();
+  }
+
+  _getPosition() {
+    if (navigator.geolocation)
+      navigator.geolocation.getCurrentPosition(
+        this._loadMap.bind(this),
+        function () {
+          alert('Could not get your position');
+        }
+      );
+  }
+
+  _loadMap(position) {
+    const { latitude } = position.coords;
+    const { longitude } = position.coords;
+    const coords = [latitude, longitude];
+
+    console.log(`Loading map at: ${latitude}, ${longitude}`);
+
+    this.#map = L.map('map').setView(coords, this.#mapZoomLevel);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(this.#map);
+
+    // Listen for clicks
+    this.#map.on('click', this._showForm.bind(this));
+  }
+
+  _showForm(mapE) {
+    this.#mapEvent = mapE;
+    const { lat, lng } = mapE.latlng;
+
+    console.log(`Map clicked at: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+
+    // Show marker where clicked
+    L.marker([lat, lng])
+      .addTo(this.#map)
+      .bindPopup(`Clicked here: ${lat.toFixed(4)}, ${lng.toFixed(4)}`)
+      .openPopup();
+  }
+}
+
+// Start the app
+const app = new App();
